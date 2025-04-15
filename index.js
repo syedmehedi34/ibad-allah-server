@@ -106,6 +106,31 @@ async function run() {
       res.json(result);
     });
 
+    //* get amal details by date
+    app.get("/amal_data_by_date", async (req, res) => {
+      try {
+        const { userEmail, date } = req.query;
+
+        if (!userEmail || !date) {
+          return res.status(400).json({
+            message: "userEmail and date query parameters are required",
+          });
+        }
+
+        const query = {
+          "userInformation.userEmail": userEmail,
+          "userInformation.date": date,
+        };
+
+        const document = await amalTracker.findOne(query);
+
+        res.status(200).json(document || {});
+      } catch (error) {
+        console.error("Error fetching amal data:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    });
+
     //--------------------------------------------//
   } catch (error) {
     console.error("Error in run:", error);
