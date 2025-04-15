@@ -10,7 +10,11 @@ const { MongoClient, ServerApiVersion } = require("mongodb");
 // Middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173"], // Update for production if needed
+    origin: [
+      "http://localhost:5173",
+      "https://ibad-allah.netlify.app",
+      "https://ibad-allah.surge.sh",
+    ], // Update for production if needed
     credentials: true,
   })
 );
