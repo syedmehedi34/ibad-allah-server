@@ -39,21 +39,51 @@ async function run() {
     app.post("/amal_data", async (req, res) => {
       try {
         const allAnswerInfo = req.body;
-        // console.log(allAnswerInfo);
+        const userEmail = allAnswerInfo.userInformation?.userEmail;
+        const submittedDate = allAnswerInfo.userInformation?.date;
 
-        const result = await amalTracker.insertOne(allAnswerInfo);
+        // Validate input
+        if (!userEmail || !submittedDate) {
+          return res.status(400).json({
+            message: "userEmail and date are required in userInformation",
+          });
+        }
 
-        // Send success response
-        res.status(201).json({
-          message: "Amal data saved successfully",
-          insertedId: result.insertedId,
-        });
+        // Normalize date to yyyy-MM-dd (ensure consistency)
+        const todayDate = submittedDate; // e.g., "2025-04-16"
+        // Alternatively, you could use server date: format(new Date(), "yyyy-MM-dd")
+
+        // Query to find existing document
+        const query = {
+          "userInformation.userEmail": userEmail,
+          "userInformation.date": todayDate,
+        };
+
+        // Update or insert document
+        const updateResult = await amalTracker.findOneAndUpdate(
+          query,
+          { $set: allAnswerInfo }, // Replace entire document with new data
+          {
+            upsert: true, // Insert if no match found
+            returnDocument: "after", // Return updated/new document
+          }
+        );
+
+        // Prepare response
+        const response = {
+          message: updateResult.value
+            ? "Amal data updated successfully"
+            : "Amal data saved successfully",
+          insertedId: updateResult.value?._id || updateResult.upsertedId,
+        };
+
+        res.status(201).json(response);
       } catch (error) {
         console.error("Error saving amal data:", error);
-        res.status(500).json({ error: "Failed to save amal data" });
+        res.status(500).json({ message: "Internal server error" });
       }
     });
-    //
+    //*
 
     // * get all amal data by user
     app.get("/amal_data", async (req, res) => {
