@@ -35,11 +35,9 @@ async function run() {
   try {
     // Database and collections
     const amalTracker = client.db("IbadAllah").collection("amalTracker");
-    const dailyAmalTracker = client
+    const amalTrackerUsers = client
       .db("IbadAllah")
-      .collection("dailyAmalTracker");
-
-    // Middleware to verify JWT (optional, for protected routes)
+      .collection("amalTrackerUsers");
 
     //----------------- All APIs -----------------//
     //* saved amal data to backend
@@ -140,6 +138,26 @@ async function run() {
       }
     });
 
+    // ? -----------[save user data]-----------
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const query = { email: user.email };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          name: user.name,
+          userName: user.userName,
+          email: user.email,
+        },
+      };
+      const result = await amalTrackerUsers.updateOne(
+        query,
+        updateDoc,
+        options
+      );
+      res.send(result);
+    });
+
     //--------------------------------------------//
   } catch (error) {
     // console.error("Error in run:", error);
@@ -155,3 +173,13 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running at: ${port}`);
 });
+
+// const userName = generateUniqueUsername(formData.name);
+// // save user data to the server
+// const response = await axiosPublic.post("/users", {
+//   name: formData.name,
+//   userName,
+//   email: formData.email,
+// });
+
+// console.log(response.data);
